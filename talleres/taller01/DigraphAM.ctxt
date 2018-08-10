@@ -1,0 +1,12 @@
+#BlueJ class context
+comment0.target=DigraphAM
+comment0.text=\r\n\ Implementacion\ de\ un\ grafo\ dirigido\ usando\ matrices\ de\ adyacencia\r\n\r\n\ @author\ Mauricio\ Toro,\ Mateo\ Agudelo,\ <su\ nombre>\r\n
+comment1.params=size
+comment1.target=DigraphAM(int)
+comment2.params=source\ destination\ weight
+comment2.target=void\ addArc(int,\ int,\ int)
+comment3.params=vertex
+comment3.target=java.util.ArrayList\ getSuccessors(int)
+comment4.params=source\ destination
+comment4.target=int\ getWeight(int,\ int)
+numComments=5

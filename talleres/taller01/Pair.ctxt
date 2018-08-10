@@ -1,0 +1,18 @@
+#BlueJ class context
+comment0.target=Pair
+comment0.text=\r\n\ Contenedor\ para\ dos\ objetos\ de\ cualquier\ tipo.\ Basada\ en\ la\ implementacion\ de\r\n\ Android.\r\n\r\n\ @author\ Mateo\ Agudelo\r\n
+comment1.params=first\ second
+comment1.target=Pair(java.lang.Object,\ java.lang.Object)
+comment1.text=\r\n\ Constructor\ de\ pares.\r\n\r\n\ @param\ first\r\n\ \ \ \ \ \ \ \ \ \ \ \ primer\ objeto\ del\ par.\r\n\ @param\ second\r\n\ \ \ \ \ \ \ \ \ \ \ \ segundo\ objeto\ del\ par.\r\n
+comment2.params=o
+comment2.target=boolean\ equals(java.lang.Object)
+comment2.text=\r\n\ Verifica\ si\ dos\ pares\ son\ equivalentes.\ Se\ comparan\ los\ objetos\r\n\ correspondientes\ uno\ a\ uno\:\ first\ con\ first,\ second\ con\ second.\r\n\r\n\ @param\ o\r\n\ \ \ \ \ \ \ \ \ \ \ \ el\ par\ con\ el\ cual\ este\ par\ (this)\ sera\ verificado\r\n\ @return\ true\ (verdadero)\ si\ los\ objetos\ en\ cada\ 'componente'\ son\r\n\ \ \ \ \ \ \ \ \ equivalentes\ entre\ si.\r\n
+comment3.params=
+comment3.target=int\ hashCode()
+comment3.text=\r\n\ Computa\ el\ hash\ del\ objeto\ en\ base\ al\ hash\ de\ cada\ objeto\ que\ contiene.\r\n\r\n\ @return\ hash\ del\ par.\r\n
+comment4.params=
+comment4.target=java.lang.String\ toString()
+comment5.params=a\ b
+comment5.target=Pair\ makePair(java.lang.Object,\ java.lang.Object)
+comment5.text=\r\n\ Metodo\ utilitario\ para\ crear\ un\ par\ debidamente\ tipado.\ Se\ recomienda\r\n\ usar\ este\ en\ vez\ del\ constructor.\r\n\ \r\n\ @param\ first\r\n\ \ \ \ \ \ \ \ \ \ \ \ primer\ objeto\ del\ par.\r\n\ @param\ second\r\n\ \ \ \ \ \ \ \ \ \ \ \ segundo\ objeto\ del\ par.\r\n\ @return\ un\ par\ que\ contiene\ a\ 'a'\ y\ a\ 'b',\ y\ fue\ debidamente\ creado\ en\r\n\ \ \ \ \ \ \ \ \ base\ al\ tipo\ de\ objeto\ que\ estos\ son.\r\n
+numComments=6
