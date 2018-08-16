@@ -1,0 +1,14 @@
+#BlueJ class context
+comment0.target=Graph
+comment0.text=\r\n\ Abstract\ class\ for\ implementations\ of\ Digraphs\r\n\ \r\n\ @author\ Mauricio\ Toro\r\n\ @version\ 1\r\n
+comment1.params=vertices
+comment1.target=Graph(int)
+comment2.params=source\ destination\ weight
+comment2.target=void\ addArc(int,\ int,\ int)
+comment3.params=vertice
+comment3.target=java.util.ArrayList\ getSuccessors(int)
+comment4.params=source\ destination
+comment4.target=int\ getWeight(int,\ int)
+comment5.params=
+comment5.target=int\ size()
+numComments=6

@@ -1,0 +1,7 @@
+#BlueJ class context
+comment0.target=Pareja
+comment0.text=\r\n\r\n\ @author\ Nicolas\r\n
+comment1.params=peso\ vertice
+comment1.target=Pareja(int,\ int)
+comment1.text=\r\n\ Constructor\ de\ Pareja\r\n
+numComments=2

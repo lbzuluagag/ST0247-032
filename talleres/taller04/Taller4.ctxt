@@ -1,0 +1,12 @@
+#BlueJ class context
+comment0.target=Taller4
+comment0.text=\r\n\ Clase\ en\ la\ cual\ se\ implementan\ los\ metodos\ del\ Taller\ de\ Clase\ \#4\r\n\ \r\n\ @author\ Mauricio\ Toro,\ Mateo\ Agudelo\r\n
+comment1.params=g\ i\ f
+comment1.target=boolean\ haycamino(Graph,\ int,\ int)
+comment2.params=g\ i\ f\ v
+comment2.target=boolean\ haycamino(Graph,\ int,\ int,\ boolean[])
+comment3.params=g
+comment3.target=int\ recorrido(Graph)
+comment4.params=g\ i\ f\ unvisited
+comment4.target=int\ recorrido(Graph,\ int,\ int,\ int[])
+numComments=5
