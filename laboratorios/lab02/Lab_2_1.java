@@ -115,22 +115,25 @@ public class Lab_2_1 {
 
 	// This method checks whether or not a certain position of a queen is legal or not.
 	public boolean checkPos (int x, int y, Board b) {
-		// Compare the current queen's position to all previously placed queens
-		for (int i = 0; i < x; i++) {
-			// Check horizontally (y = y)
-			if (this.pos.get(i).equals(y)) {
-				return false;}
-			// Check diagonally up (x - i = y - y')
-			if (x - i == y - this.pos.get(i)) {
-				return false;}
-			// Check diagonally down (x - i = y' - y)
-			if (x - i == this.pos.get(i) - y) {
-				return false;}
-			// Check if bad field
-			if (b.isBadField(x, y)) {
-				return false;}
+		
+		// Check if bad field
+		if (b.isBadField(x, y)) {
+			return false;}
+		else {
+			// Compare the current queen's position to all previously placed queens
+			for (int i = 0; i < x; i++) {
+				// Check horizontally (y = y)
+				if (this.pos.get(i).equals(y)) {
+					return false;}
+				// Check diagonally up (x - i = y - y')
+				if (x - i == y - this.pos.get(i)) {
+					return false;}
+				// Check diagonally down (x - i = y' - y)
+				if (x - i == this.pos.get(i) - y) {
+					return false;}
+			}
+			return true;
 		}
-		return true;
 	}
 
 	public static void main(String[] args) {
@@ -139,6 +142,7 @@ public class Lab_2_1 {
 		test.readInput();
 		test.processInput();
 		test.checkAllBoards();
+		test.boards.get(0).printBadFields();
 	}
 
 }
