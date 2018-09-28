@@ -12,9 +12,9 @@ class Vehicle:
         self.time2base = 0.0
         self.closest_station = 0
 
-
 class CVRP_V1:
     def __init__(self, args):
+        # Read input fields
         self.lines = []
         self.n = 0
         self.m = 0
@@ -26,18 +26,17 @@ class CVRP_V1:
         self.Smax = 0.0
         self.st_customer = 0.0
         self.Q = 0.0
-        self.clients = []
-        self.visited = []
-        self.depot = [0, "depot", 0.0, 0.0, "d", 0]
-        self.stations = []
         self.nodes = []
+        # Calculated/Generated input fields
+        self.visited = []
         self.distances = np.zeros((1, 1))
         self.times = np.zeros((1, 1))
         self.vehicles = []
+        # Output field
         self.routes = []
 
+        # automatically read input
         self.read_input(args)
-        self.process_input()
 
     def read_input(self, args):
 
@@ -48,8 +47,6 @@ class CVRP_V1:
             filename = args[1]
             file = open(filename, "r")
             self.lines = file.readlines()
-            for e in self.lines:
-                print(e)
         except:
             sys.exit("ERROR: Could not read file")
 
@@ -98,7 +95,7 @@ class CVRP_V1:
         self.lines.remove(self.lines[0])
         self.lines.remove(self.lines[0])
         self.lines.remove(self.lines[0])
-        # read all nodes and store them in their respective fields
+        # read all nodes and store them in their respective field
         while not self.lines[0] == "\n":
             tmp = self.lines[0].split(" ")
             num = int(tmp[0])
@@ -109,19 +106,6 @@ class CVRP_V1:
             type_s = int(tmp[5])
 
             self.nodes.append([num, name, x, y, type, type_s])
-
-            if type == "d":
-                self.depot[0] = num
-                self.depot[1] = name
-                self.depot[2] = x
-                self.depot[3] = y
-                self.depot[4] = type
-                self.depot[5] = type_s
-            elif type == "c":
-                self.clients.append([num, name, x, y, type, type_s])
-            elif type == "s":
-                self.stations.append([num, name, x, y, type, type_s])
-
             self.lines.remove(self.lines[0])
         # create distance and time matrix
         xs = np.zeros(self.n)
@@ -146,13 +130,29 @@ class CVRP_V1:
 
         # initialise visited
         self.visited = np.zeros(self.n)
-        self.visited[self.depot[0]] = 1
 
         # create first vehicle
         self.vehicles.append(Vehicle(self.Q, self.Tmax))
+
+    def find_closest_neighbour(self):
+        tmp_closest = [-1, 0, sys.maxsize, sys.maxsize]  # [associated vehicle, target, distance, time]
+
+
+        # Check all neighbours for all vehicles
+        for v in self.vehicles:
+            # iterate over all nodes
+            for i in range(self.n):
+                # Check if client, unvisited, and if neighbour is closer than previous tmp_closest. If yes, update
+                if self.nodes[i][4] == "c" and self.visited[i] == 0 and self.times[v.current, i] < tmp_closest[3]:
+                    print("hey")
+
+
+
 
     def plan_routes(self):
         pass
 
 
 obj = CVRP_V1(sys.argv)
+obj.process_input()
+obj.find_closest_neighbour()
