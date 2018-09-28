@@ -28,10 +28,11 @@ class CVRP_V1:
         self.Q = 0.0
         self.nodes = []
         # Calculated/Generated input fields
-        self.visited = []
-        self.distances = np.zeros((1, 1))
-        self.times = np.zeros((1, 1))
-        self.vehicles = []
+        self.visited = []                       # a list that indicates with 1 and 0 if a node has been visited
+        self.closest_station = []               # a list that stores the closest station for each node
+        self.distances = np.zeros((1, 1))       # a matrix that contains the distances between all nodes
+        self.times = np.zeros((1, 1))           # a matric that contains the times between all nodes
+        self.vehicles = []                      # a list of all vehicles used
         # Output field
         self.routes = []
 
@@ -128,25 +129,43 @@ class CVRP_V1:
             self.distances[i, i] = sys.maxsize
             self.times[i, i] = sys.maxsize
 
-        # initialise visited
-        self.visited = np.zeros(self.n)
+        # initialise visited and closest station
+        self.visited = [0] * self.n
+        self.closest_station = [0] * self.n
 
-        # create first vehicle
+        # initialize first vehicle
         self.vehicles.append(Vehicle(self.Q, self.Tmax))
+
+        # find closest station for every node
+
+        for node in self.nodes:
+            if node[4] == "c":
+                for i in range(self.n):
+                    if self.nodes[i][4] == "s" and self.distances[node[0], i] < self.distances[node[0], self.closest_station[node[0]]]:
+                        self.closest_station[node[0]] = i
+
+    # Checks if a vehicle could safely go to a proposed node and still have enough time and energy to get to the depot
+    def can_go(self, vehicle, client):
+        # Check if closest charging station would still be in reach
+        tmp_energy = vehicle.rem_energy - self.distances[vehicle.current, client] - self.distances[client, self.closest_station[client]]
+        if tmp_energy < 0:
+            return False
+        # Check if base could still be reached with updated energy from client node
+        # If yes, check if time would be sufficient
+        # If no, check if time would be sufficient taking time to next charging station and charging time into account
 
     def find_closest_neighbour(self):
         tmp_closest = [-1, 0, sys.maxsize, sys.maxsize]  # [associated vehicle, target, distance, time]
 
-
         # Check all neighbours for all vehicles
         for v in self.vehicles:
-            # iterate over all nodes
+            # iterate over all nodes (i represents the target node)
             for i in range(self.n):
                 # Check if client, unvisited, and if neighbour is closer than previous tmp_closest. If yes, update
                 if self.nodes[i][4] == "c" and self.visited[i] == 0 and self.times[v.current, i] < tmp_closest[3]:
-                    print("hey")
+                    tmp_closest = [v, i, self.distances[v.current, i], self.times[v.current, i]]
 
-
+        # Check if corresponding vehicle can go to closest client within its time and battery constrains
 
 
     def plan_routes(self):
