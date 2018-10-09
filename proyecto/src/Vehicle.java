@@ -116,22 +116,18 @@ public class Vehicle {
 		return true;
 	}
 	
-	public void moveTo(Node node, double timeAtClient) {
+	public void moveTo(Node node, ArrayList<ArrayList<Double>> distances, double timeAtNode) {
 		this.addNodeToRoute(node);																// Add node to vehicle's route
-		
+		this.setRemTime(this.remTime - distances.get(this.currentNode.getNumber()).get(node.getNumber()) / this.speed - timeAtNode);
+																								// Update vehicle's remaining time
 		
 		if (node instanceof Client) {															// Check if target node is a client
-			this.setEnergyLevel(this.energyLevel - this.distanceToClient * this.r);				// Update vehicle's remaining energy
-			this.setRemTime(this.remTime - this.distanceToClient / this.speed - timeAtClient);	// Update vehicle's remaining time			
-			((Client) node).setVisited(true);													// If yes, mark client as visited
+			this.setEnergyLevel(this.energyLevel - this.distanceToClient * this.r);				// Update vehicle's remaining energy				
+			((Client) node).setVisited(true);													// Mark client as visited
 		}
 		else if (node instanceof Station) {														// Check if target node is a station
 			if (node instanceof Depot) {														// If a vehicle returns to the depot, make sure that it will not be used anymore
 				this.setOutOfTime(true);														// mark vehicle as "out of time"
-				this.setRemTime(this.remTime - 0.0 / this.speed);
-			}
-			else {
-				this.setRemTime(this.remTime - 0.0 / this.speed - ((Station) node).S);			// Assume full charging time
 			}
 			this.setEnergyLevel(((Station) node).Q);											// Assume full charge (for now)
 		}
@@ -145,8 +141,4 @@ public class Vehicle {
 	public void setOutOfTime(boolean outOfTime) {
 		this.outOfTime = outOfTime;
 	}
-
-
-	
-
 }

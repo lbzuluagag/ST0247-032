@@ -5,29 +5,41 @@ import java.lang.Math;
 
 /* TODO:
  * implement Vehicle.canReturnToBase()
- * change Run.vehicleAtBase: Must only return true if the vehicle still is idle
  * What if target node can only be reached by going through (several) charging station(s)? Needs to be dealt with
  * Finish implementation of wrap up routes: lead vehicles to charging stations before base
  * Deal with times at charging stations
  * Finish reading input: l and g are momentarily disregarded
  * in Vehicle.move: subtract travel time from rem time for stations and depot
+ * 
+ * implement route optimization
+ * 				-	Local search
+ * 				-	Charging time optimization
+ * 
+ * write methods for complextiy analysis
+ * 
+ * Optional: graphical implementation of routes
+ * 				-	Draw all nodes in an x and y plane
+ * 				-	Draw vehicle routes in this plan
+ * 				-	Use different colours or line thicknesses
  */
 
 public class Run {
-	ArrayList<Node> nodes = new ArrayList<Node>();									// all nodes
-	ArrayList<ArrayList<Double>> distances = new ArrayList<ArrayList<Double>>();	// distance matrix
-	ArrayList<Vehicle> vehicles = new ArrayList<Vehicle>();							// all vehicles
-	int n;																			// number of nodes
-	int m;																			// number of clients
-	int unvisited;																	// number of unvisited clients
-	int u;																			// number of charging stations
-	int breaks;																		// number of break points (depot + stations?)
-	double r;																		// energy consumption per km
-	double speed;																	// speed
-	double Tmax;																	// maximum route duration
-	double Smax;																	// maximum charging time
-	double St_customer;																// customer visit time
-	double Q;																		// battery capacity
+	ArrayList<Node> nodes = new ArrayList<Node>();											// all nodes
+	ArrayList<Station> stations = new ArrayList<Station>();									// all stations. Stored seperately to decrease time complexity when finding closest stations to clients
+	ArrayList<ArrayList<Double>> distances = new ArrayList<ArrayList<Double>>();			// distance matrix
+	ArrayList<ArrayList<Station>> closestStations = new ArrayList<ArrayList<Station>>();	// The closest station for every pair of nodes (clients particularly)
+	ArrayList<Vehicle> vehicles = new ArrayList<Vehicle>();									// all vehicles
+	int n;																					// number of nodes
+	int m;																					// number of clients
+	int unvisited;																			// number of unvisited clients
+	int u;																					// number of charging stations
+	int breaks;																				// number of break points (depot + stations?)
+	double r;																				// energy consumption per km
+	double speed;																			// speed
+	double Tmax;																			// maximum route duration
+	double Smax;																			// maximum charging time
+	double St_customer;																		// customer visit time
+	double Q;																				// battery capacity
 	
 	// Checks input. Input must
 	//		- consist of one argument that describes a file location
@@ -115,7 +127,9 @@ public class Run {
 	    						break;
 	    		case "c":		this.nodes.add(new Client(number, name, x, y));
 	    						break;
-	    		case "s":		this.nodes.add(new Station(number, name, x, y, sType));
+	    		case "s":		Station s = new Station(number, name, x, y, sType);
+	    						this.nodes.add(s);
+	    						this.stations.add(s);
 	    						break;
 	    		}
 	    		
@@ -165,6 +179,30 @@ public class Run {
 			}
 		// set the distance of any node to itself to infinity
 		this.distances.get(i).set(i, (double) Integer.MAX_VALUE);
+		}
+	}
+	
+	// Create a matrix that contains the closest station to every pair of nodes. The closest station is defined to be the station with the shortest cumulative distance to both nodes
+	public void createStationMatrix() {
+		
+		// for every node, create an array list containing the closest station to itself and all other nodes
+		for (int i = 0; i < this.n; i++) {
+			this.closestStations.add(new ArrayList<Station>());
+			for (int j = 0; j < this.n; j++) {
+				// Initialise a tempory fake station with an infinite distance
+				Station tmp = new Station(-1, "tmp", 0.0, 0.0, 0);
+				double currentMin = (double) Integer.MAX_VALUE;
+				// Iterate over all stations to find closest
+				for (Station s : this.stations) {
+					if (this.distances.get(i).get(s.getNumber()) + this.distances.get(j).get(s.getNumber()) < currentMin) {
+						tmp = s;
+						currentMin = (this.distances.get(i).get(s.getNumber()) + this.distances.get(j).get(s.getNumber()));
+					}
+				}
+				
+				// Add closest station in respective position
+				this.closestStations.get(i).add(tmp);
+			}
 		}
 	}
 	
@@ -218,7 +256,7 @@ public class Run {
 		// Loop until there are no more unvisited nodes
 		while (this.unvisited > 0) {
 			// Print status for debugging
-			this.printDynamicStatus(0);
+			// this.printDynamicStatus(0);
 			
 			// Find closest neighbour
 			Client currentCandidate = findGlobalClosestNeighbour();
@@ -231,7 +269,20 @@ public class Run {
 			}
 			// Check if the vehicle can still make it to a station without running out of fuel. If not, move vehicle to station
 			else if (!currentCandidate.getAssignedVehicle().canGoToCNWithFuel()) {
-				target = currentCandidate.getClosestStation();
+				// Check which station to move to. If the vehicle cannot move to the preferred station with the smallest cumulative distance, simply move to the current closest station
+				Vehicle v = currentCandidate.getAssignedVehicle();
+				int current = v.getCurrentNode().getNumber();
+				int neighbour = currentCandidate.getNumber();
+				double distanceToPrefStation = this.distances.get(current).get(this.closestStations.get(current).get(neighbour).getNumber());
+				
+				// If the energy level does not fall below 0 when going to the preferred station, move there. Else move to the closest station.
+				if (v.getEnergyLevel() - distanceToPrefStation * this.r >= 0) {
+					v.moveTo(this.closestStations.get(current).get(neighbour), this.distances, this.Smax);
+					target = currentCandidate;
+				}
+				else {
+					target = currentCandidate.getClosestStation();					
+				}
 			}
 			// Check if the vehicle would have enough fuel to go back to base from candidate. If not, move directly to base
 			else if (!currentCandidate.getAssignedVehicle().canReturnToBase()) {
@@ -241,14 +292,14 @@ public class Run {
 				target = currentCandidate;
 			}
 			
-			System.out.println("Closest global client " + String.valueOf(currentCandidate.getNumber()) + " assigned to vehicle " + String.valueOf(currentCandidate.getAssignedVehicle().getNumber()));
+			/* System.out.println("Closest global client " + String.valueOf(currentCandidate.getNumber()) + " assigned to vehicle " + String.valueOf(currentCandidate.getAssignedVehicle().getNumber()));
 			
 			// Move vehicle
 			System.out.println("Vehicle " + String.valueOf(currentCandidate.getAssignedVehicle().getNumber()) + " is moved to: ");
 			System.out.print(target.getNumber());
 			System.out.print(", Name: ");
-			System.out.println(target.getName());
-			currentCandidate.getAssignedVehicle().moveTo(target, this.St_customer);
+			System.out.println(target.getName()); */
+			currentCandidate.getAssignedVehicle().moveTo(target, this.distances, this.St_customer);
 			
 			// Decrement unvisited if the vehicle was moved to a client.
 			if (target.equals(currentCandidate)) {
@@ -280,7 +331,7 @@ public class Run {
 			// Check if vehicle is already at base. If yes, do nothing
 			if (!v.getCurrentNode().equals(this.nodes.get(0))) {
 				if (v.canReturnToBase()) {
-					v.moveTo(this.nodes.get(0), this.St_customer);
+					v.moveTo(this.nodes.get(0), this.distances, 0);
 				}
 				else {
 					// Yet to be implemented!
@@ -289,8 +340,17 @@ public class Run {
 		}
 	}
 	
+	public void optimizeRoutes() {
+		// first, do local searches to see if the arrangement of nodes can be optimised.
+		// Then, when the node arrangement is final, minimize charging times
+	}
+	
+	public void drawSolutions() {
+		// fully optional
+	}
+	
 	public void printOutput() {
-		this.printDynamicStatus(1);
+		// this.printDynamicStatus(1);
 		for (Vehicle v : this.vehicles) {
 			System.out.println("Vehicle " + String.valueOf(v.getNumber()) + ": ");
 			System.out.print("	Route: ");
@@ -315,6 +375,8 @@ public class Run {
 		System.out.println("st_customer = " + String.valueOf(this.St_customer));
 		System.out.println("Q = " + String.valueOf(this.Q));
 		System.out.println(this.distances);
+		System.out.println("");
+		System.out.println(this.closestStations);
 	}
 	
 	public void printDynamicStatus(int i) {
@@ -337,6 +399,7 @@ public class Run {
 		prog.checkInput(args);														// Check input
 		prog.readInput(args[0]);													// Read input
 		prog.createDistanceMatrix();												// Create distance matrix
+		prog.createStationMatrix();													// Create matrix of closest stations
 		prog.setDistancesOfClients(); 												// Calculate distances to closest station and base for each client
 		// prog.printStatus();
 		prog.planRoutes();															// Run the actual algorithm
