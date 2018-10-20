@@ -129,7 +129,7 @@ public class Vehicle {
 			if (node instanceof Depot) {														// If a vehicle returns to the depot, make sure that it will not be used anymore
 				this.setOutOfTime(true);														// mark vehicle as "out of time"
 			}
-			this.setEnergyLevel(((Station) node).Q);											// Assume full charge (for now)
+			this.setEnergyLevel(((Station) node).getQ());										// Assume full charge (for now)
 		}
 		this.setCurrentNode(node);																// Update current node of vehicle
 	}

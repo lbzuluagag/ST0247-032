@@ -1,6 +1,6 @@
 
 public class Station extends Node {
-	protected static int type;	// Type of charging station: (0: fast, 1: medium, 2: slow)
+	protected int type;	// Type of charging station: (0: fast, 1: medium, 2: slow)
 	protected double S;			// Maximum charging time
 	protected double Q;			// Maximum battery level
 	
@@ -28,5 +28,13 @@ public class Station extends Node {
 
 	public void setQ(double q) {
 		Q = q;
+	}
+	
+	public int getType() {
+		return type;
+	}
+
+	public void setType(int type) {
+		this.type = type;
 	}
 }

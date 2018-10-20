@@ -5,11 +5,11 @@ import java.lang.Math;
 
 /* TODO:
  * implement Vehicle.canReturnToBase()
- * What if target node can only be reached by going through (several) charging station(s)? Needs to be dealt with
  * Finish implementation of wrap up routes: lead vehicles to charging stations before base
  * Deal with times at charging stations
  * Finish reading input: l and g are momentarily disregarded
  * in Vehicle.move: subtract travel time from rem time for stations and depot
+ * Update Run.printOutput() to ensure conformity with project specifications
  * 
  * implement route optimization
  * 				-	Local search
@@ -123,7 +123,7 @@ public class Run {
 	    		
 	    		// If the type is "d", add a Depot to the Array of nodes; if the type is "c", add a client and if the type is "s", add a station
 	    		switch (type) {
-	    		case "d":		this.nodes.add(new Depot(number, name, x, y));
+	    		case "d":		this.nodes.add(new Depot(number, name, x, y, 0));
 	    						break;
 	    		case "c":		this.nodes.add(new Client(number, name, x, y));
 	    						break;
@@ -277,7 +277,7 @@ public class Run {
 				
 				// If the energy level does not fall below 0 when going to the preferred station, move there. Else move to the closest station.
 				if (v.getEnergyLevel() - distanceToPrefStation * this.r >= 0) {
-					v.moveTo(this.closestStations.get(current).get(neighbour), this.distances, this.Smax);
+					v.moveTo(this.closestStations.get(current).get(neighbour), this.distances, this.Smax); // this.closestStations.get(current).get(neighbour).getS()
 					target = currentCandidate;
 				}
 				else {
@@ -299,7 +299,12 @@ public class Run {
 			System.out.print(target.getNumber());
 			System.out.print(", Name: ");
 			System.out.println(target.getName()); */
-			currentCandidate.getAssignedVehicle().moveTo(target, this.distances, this.St_customer);
+			if (target instanceof Depot) {
+				currentCandidate.getAssignedVehicle().moveTo(target, this.distances, 0);
+			}
+			else {
+				currentCandidate.getAssignedVehicle().moveTo(target, this.distances, this.St_customer);
+			}
 			
 			// Decrement unvisited if the vehicle was moved to a client.
 			if (target.equals(currentCandidate)) {
