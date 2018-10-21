@@ -137,18 +137,76 @@ public class Run {
 	    		nextLine = sc.nextLine();
 	    	}
 	    	
-	    	// Skip the next two lines
-	    	sc.nextLine();
-	    	sc.nextLine();
-	    	
+	    	// Skip the next two lines          
+			sc.nextLine();
+			sc.nextLine();
+			nextLine = sc.nextLine();
+			
+			// Matrix to save l for each station (charging time)
+			double lmatrix [][] = new double[3][3];
+			int cont = 0; // Variable to know which line we're reading on the .txt file.
+			
+			while (!nextLine.equals("")) {			
+				// Decompose input line			
+				String[] parts = nextLine.split(" ");				
+				//lmatrix = new double [3][parts.length];				
+					for(int j=1; j<parts.length; j++){												
+						lmatrix[cont][j-1] = Double.parseDouble(parts[j]);
+						System.out.println(lmatrix[cont][j-1]);						
+					}				
+				cont++;	    					
+				nextLine = sc.nextLine();								
+			}			
+			
+			double gmatrix [][] =  new double [3][3];
+			cont = 0; // Variable to know which line we're reading on the .txt file.
+			
+			sc.nextLine();
+			sc.nextLine();
+			nextLine = sc.nextLine();
+
+			while (!nextLine.equals("")) {			
+				// Decompose input line			
+				String[] parts = nextLine.split(" ");				
+				//gmatrix = new double [3][parts.length];				
+					for(int j=1; j<parts.length; j++){												
+						gmatrix[cont][j-1] = Double.parseDouble(parts[j]);						
+					}				
+				cont++;	    								
+				nextLine = sc.nextLine();				
+			}		
+
 	    	// Read charging station stats (yet to be implemented)
 	    	// Quick and dirty fix for now: Assign max charging time and max battery level to all stations
-	    	
+				
+
 	    	for (Node node : this.nodes) {
-	    		if (node instanceof Station) {
-	    			((Station) node).setQ(this.Q);
-	    			((Station) node).setS(this.Smax);
-	    		}
+				if (node instanceof Station) { // If the node is a station, check what type of station it is 
+					//and assign a max charging value and a time for that value. The values are stored in the matrices. 
+										
+					switch(((Station) node).getType()){
+						
+						case 0: 													
+							((Station) node).setQ(gmatrix[0][2]);							
+							((Station) node).setS(lmatrix[0][2]);																		
+						break;
+
+						case 1:
+							((Station) node).setQ(gmatrix[1][2]);
+							((Station) node).setS(lmatrix[1][2]);							
+						break;
+
+						case 2:
+							((Station) node).setQ(gmatrix[2][2]);
+							((Station) node).setS(lmatrix[2][2]);							
+						break;
+
+						default:							
+							break;							
+					} 
+	    			//((Station) node).setQ(this.Q);
+					//((Station) node).setS(this.Smax);					
+				}				
 	    	}
 	    	
 	    	// close scanner
