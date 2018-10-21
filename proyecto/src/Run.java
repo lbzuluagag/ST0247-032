@@ -409,6 +409,11 @@ public class Run {
 		// prog.printStatus();
 		prog.planRoutes();															// Run the actual algorithm
 		prog.printOutput();															// print output
+		
+		VND test = new VND(prog.nodes, prog.distances, prog.vehicles, prog.r, prog.speed, prog.Tmax, prog.St_customer, prog.Q);
+		test.changeRouteRepresentation();
+		System.out.println(test.calculateObjectiveFunction());
+		test.isFeasibleSolution(test.getSolution());
 	}
 
 }
