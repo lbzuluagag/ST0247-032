@@ -137,7 +137,7 @@ public class Run {
 	    		nextLine = sc.nextLine();
 	    	}
 	    	
-	    	// Skip the next two lines          
+	    	// Skip the next two lines
 			sc.nextLine();
 			sc.nextLine();
 			nextLine = sc.nextLine();
@@ -156,7 +156,7 @@ public class Run {
 					}				
 				cont++;	    					
 				nextLine = sc.nextLine();								
-			}			
+			}	
 			
 			double gmatrix [][] =  new double [3][3];
 			cont = 0; // Variable to know which line we're reading on the .txt file.
@@ -165,7 +165,7 @@ public class Run {
 			sc.nextLine();
 			nextLine = sc.nextLine();
 
-			while (!nextLine.equals("")) {			
+			while (sc.hasNextLine()) {			
 				// Decompose input line			
 				String[] parts = nextLine.split(" ");				
 				//gmatrix = new double [3][parts.length];				
@@ -174,12 +174,8 @@ public class Run {
 					}				
 				cont++;	    								
 				nextLine = sc.nextLine();				
-			}		
-
-	    	// Read charging station stats (yet to be implemented)
-	    	// Quick and dirty fix for now: Assign max charging time and max battery level to all stations
-				
-
+			}
+			
 	    	for (Node node : this.nodes) {
 				if (node instanceof Station) { // If the node is a station, check what type of station it is 
 					//and assign a max charging value and a time for that value. The values are stored in the matrices. 
@@ -204,8 +200,6 @@ public class Run {
 						default:							
 							break;							
 					} 
-	    			//((Station) node).setQ(this.Q);
-					//((Station) node).setS(this.Smax);					
 				}				
 	    	}
 	    	
@@ -215,6 +209,7 @@ public class Run {
 	    	
 	    	
 		} catch (Exception e) {
+			e.printStackTrace();;
 			System.out.println("ERROR: Error while reading input file.");
 			System.exit(1);
 		}
