@@ -5,7 +5,7 @@ public class Client extends Node {
 	private Vehicle assignedVehicle;
 	private Station closestStation;
 	private double distanceToStation;
-	private double distanceToBase;
+	
 	
 	public Client (int num, String name, double x, double y) {
 		this.number = num;
@@ -50,12 +50,25 @@ public class Client extends Node {
 	public double getDistanceToStation() {
 		return distanceToStation;
 	}
-
-	public double getDistanceToBase() {
-		return distanceToBase;
-	}
-
-	public void setDistanceToBase(ArrayList<ArrayList<Double>> distances) {
-		this.distanceToBase = distances.get(this.number).get(0);
+	
+	public void planFastestRouteToBase(ArrayList<ArrayList<Double>> distances, ArrayList<Station> sortedStations, double r, double speed) {
+		this.fastestRouteToBase.add(this.closestStation);
+		double energy = this.closestStation.getQ();
+		double time = this.closestStation.getS();
+				
+		while (!(this.fastestRouteToBase.contains(sortedStations.get(0)))) {
+			boolean addedStation = false;
+			for (Station s : sortedStations) {
+				double distance = distances.get(this.fastestRouteToBase.get(this.fastestRouteToBase.size()-1).getNumber()).get(s.getNumber());
+				if (energy -  distance * r > 0 && !addedStation) {
+					this.fastestRouteToBase.add(s);
+					addedStation = true;
+					energy = s.getQ();
+					time += distance / speed + s.getS();
+				}
+			}
+		}
+		
+		this.setTimeToBaseWithCharging(time);
 	}
 }

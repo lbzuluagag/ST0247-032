@@ -26,6 +26,7 @@ import java.lang.Math;
 public class Run {
 	ArrayList<Node> nodes = new ArrayList<Node>();											// all nodes
 	ArrayList<Station> stations = new ArrayList<Station>();									// all stations. Stored seperately to decrease time complexity when finding closest stations to clients
+	ArrayList<Station> sortedStations = new ArrayList<Station>();							// all stations, sorted by distance to depot
 	ArrayList<ArrayList<Double>> distances = new ArrayList<ArrayList<Double>>();			// distance matrix
 	ArrayList<ArrayList<Station>> closestStations = new ArrayList<ArrayList<Station>>();	// The closest station for every pair of nodes (clients particularly)
 	ArrayList<Vehicle> vehicles = new ArrayList<Vehicle>();									// all vehicles
@@ -152,7 +153,6 @@ public class Run {
 				//lmatrix = new double [3][parts.length];				
 					for(int j=1; j<parts.length; j++){												
 						lmatrix[cont][j-1] = Double.parseDouble(parts[j]);
-						System.out.println(lmatrix[cont][j-1]);						
 					}				
 				cont++;	    					
 				nextLine = sc.nextLine();								
@@ -163,9 +163,9 @@ public class Run {
 			
 			sc.nextLine();
 			sc.nextLine();
-			nextLine = sc.nextLine();
 
-			while (sc.hasNextLine()) {			
+			while (sc.hasNextLine()) {
+				nextLine = sc.nextLine();
 				// Decompose input line			
 				String[] parts = nextLine.split(" ");				
 				//gmatrix = new double [3][parts.length];				
@@ -173,7 +173,6 @@ public class Run {
 						gmatrix[cont][j-1] = Double.parseDouble(parts[j]);						
 					}				
 				cont++;	    								
-				nextLine = sc.nextLine();				
 			}
 			
 	    	for (Node node : this.nodes) {
@@ -197,8 +196,8 @@ public class Run {
 							((Station) node).setS(lmatrix[2][2]);							
 						break;
 
-						default:							
-							break;							
+						default:
+							break;
 					} 
 				}				
 	    	}
@@ -260,12 +259,31 @@ public class Run {
 	}
 	
 	// Store the closest station to each client, the distance to the closest station and the distance to the base in the respective fields of the Client object to avoid repeated calculation
-	public void setDistancesOfClients() {
+	public void setImportantDistances() {
 		for (Node node : this.nodes) {
 			if (node instanceof Client) {
 				((Client) node).setClosestStation(this.distances, this.nodes);
-				((Client) node).setDistanceToBase(this.distances);
 			}
+			node.setDistanceToBase(this.distances);
+		}
+	}
+	
+	// This method sorts all stations according to their distance to the base. Simple insertion sort.
+	public void orderStationsByDistanceToBase() {
+		for (Station currentStation : this.stations) {
+			int i = 0;
+			while (i < this.sortedStations.size() && currentStation.getDistanceToBase() > this.sortedStations.get(i).getDistanceToBase()) {
+				i++;
+			}
+			this.sortedStations.add(i, currentStation);
+		}
+		this.sortedStations.add(0, (Station) this.nodes.get(0));
+	}
+	
+	// This method plans the quickest return to the base from every node which is used to route the vehicles when their energy is not sufficient to go the the base directly.
+	public void planReturnToBase() {
+		for (Node n : this.nodes) {
+			n.planFastestRouteToBase(this.distances, this.sortedStations, this.r, this.speed);
 		}
 	}
 	
@@ -452,20 +470,25 @@ public class Run {
 		}
 	}
 	
+	public void setup(String[] args) {
+		this.checkInput(args);														// Check input
+		this.readInput(args[0]);													// Read input
+		this.createDistanceMatrix();												// Create distance matrix
+		this.createStationMatrix();													// Create matrix of closest stations
+		this.setImportantDistances(); 												// Calculate distances to closest station and base for each client
+		this.orderStationsByDistanceToBase();										// sort stations based on their distance to the depot
+		this.planReturnToBase();													// Create a feasible route to return to base for every node
+	}
+	
 	public static void main(String[] args) {
 		Run prog = new Run();														// Initialise object
-		prog.checkInput(args);														// Check input
-		prog.readInput(args[0]);													// Read input
-		prog.createDistanceMatrix();												// Create distance matrix
-		prog.createStationMatrix();													// Create matrix of closest stations
-		prog.setDistancesOfClients(); 												// Calculate distances to closest station and base for each client
-		// prog.printStatus();
+		prog.setup(args);															// run setup sequence
 		prog.planRoutes();															// Run the actual algorithm
-		prog.printOutput();															// print output
+		// prog.printOutput();														// print output
 		
 		VND test = new VND(prog.nodes, prog.distances, prog.vehicles, prog.r, prog.speed, prog.Tmax, prog.St_customer, prog.Q);
 		test.changeRouteRepresentation();
-		System.out.println(test.calculateObjectiveFunction());
+		System.out.println("Value of objective function: " + String.valueOf(test.calculateObjectiveFunction()));
 		test.isFeasibleSolution(test.getSolution());
 	}
 

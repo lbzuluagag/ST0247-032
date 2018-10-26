@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 
 public class Depot extends Station {
 
@@ -7,5 +8,9 @@ public class Depot extends Station {
 		this.name = name;
 		this.xpos = x;
 		this.ypos = y;
+	}
+	
+	public void planFastestRouteToBase(ArrayList<ArrayList<Double>> distances, ArrayList<Station> sortedStations, double r, double speed) {
+		this.setTimeToBaseWithCharging(0);
 	}
 }

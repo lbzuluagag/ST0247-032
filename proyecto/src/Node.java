@@ -1,8 +1,14 @@
+import java.util.ArrayList;
+import java.util.LinkedList;
+
 abstract class Node {
 	protected int number;
 	protected String name;
 	protected double xpos;
 	protected double ypos;
+	private double distanceToBase;
+	LinkedList<Node> fastestRouteToBase = new LinkedList<Node>();
+	private double timeToBaseWithCharging;
 	
 	public int getNumber() {
 		return number;
@@ -37,6 +43,22 @@ abstract class Node {
 		int out = 17;
 		out = 31 * out + number;
 		return out;
+	}
+	public double getDistanceToBase() {
+		return distanceToBase;
+	}
+
+	public void setDistanceToBase(ArrayList<ArrayList<Double>> distances) {
+		this.distanceToBase = distances.get(this.number).get(0);
+	}
+	
+	public void planFastestRouteToBase(ArrayList<ArrayList<Double>> distances, ArrayList<Station> sortedStations, double r, double speed) {
+	}
+	public double getTimeToBaseWithCharging() {
+		return timeToBaseWithCharging;
+	}
+	public void setTimeToBaseWithCharging(double timeToBaseWithCharging) {
+		this.timeToBaseWithCharging = timeToBaseWithCharging;
 	}
 	
 }
