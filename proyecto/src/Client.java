@@ -3,8 +3,7 @@ import java.util.ArrayList;
 public class Client extends Node {
 	private boolean visited = false;
 	private Vehicle assignedVehicle;
-	private Station closestStation;
-	private double distanceToStation;
+
 	
 	
 	public Client (int num, String name, double x, double y) {
@@ -29,32 +28,11 @@ public class Client extends Node {
 	public void setAssignedVehicle(Vehicle assignedVehicle) {
 		this.assignedVehicle = assignedVehicle;
 	}
-	
-	public void setClosestStation(ArrayList<ArrayList<Double>> distances, ArrayList<Node> nodes) {
-		this.closestStation = new Station(-1, "tmp", -1.0, -1.0, -1);
-		this.distanceToStation = (double) Integer.MAX_VALUE;
-		ArrayList<Double> currentDistances = distances.get(this.getNumber());
 		
-		for (Node node : nodes) {
-			 if (node instanceof Station && currentDistances.get(node.getNumber()) < this.distanceToStation) {
-				 this.closestStation = (Station) node;
-				 this.distanceToStation= currentDistances.get(node.getNumber());
-			 }
-		}
-	}
-
-	public Station getClosestStation() {
-		return closestStation;
-	}
-	
-	public double getDistanceToStation() {
-		return distanceToStation;
-	}
-	
 	public void planFastestRouteToBase(ArrayList<ArrayList<Double>> distances, ArrayList<Station> sortedStations, double r, double speed) {
 		this.fastestRouteToBase.add(this.closestStation);
 		double energy = this.closestStation.getQ();
-		double time = this.closestStation.getS();
+		double time = this.closestStation.getS() + distances.get(this.getNumber()).get(this.closestStation.getNumber()) / speed;
 				
 		while (!(this.fastestRouteToBase.contains(sortedStations.get(0)))) {
 			boolean addedStation = false;

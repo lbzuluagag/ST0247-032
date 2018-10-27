@@ -92,11 +92,19 @@ public class Vehicle {
 	public boolean canGoToCNInTime(double timeAtClient) {
 		// calculate travel time to client by dividing distance by speed
 		double timeToClient = this.distanceToClient / this.speed;
-		// fetch distance from client to base and calculate travel time
-		double distanceClientToBase = this.getClosestClient().getDistanceToBase();
-		double timeClientToBase = distanceClientToBase / this.speed;
-		
-		return (this.remTime - timeToClient - timeAtClient - timeClientToBase > 0);
+		double timeToBase = this.closestClient.getTimeToBaseWithCharging();
+		return (this.remTime - timeToClient - timeAtClient -  timeToBase > 0);
+	}
+	
+	public void returnToBase(ArrayList<ArrayList<Double>> distances) {
+		if (this.canReturnToBase()) {
+			this.moveTo(this.currentNode.fastestRouteToBase.get(this.currentNode.fastestRouteToBase.size()-1), distances, 0);
+		}
+		else {
+			for (Node n : this.currentNode.fastestRouteToBase) {
+				this.moveTo(n, distances, ((Station) n).getS());
+			}
+		}
 	}
 	
 	// Check if the vehicle can safely go to the proposed node without running out of fuel
@@ -108,12 +116,11 @@ public class Vehicle {
 		return (this.energyLevel - fuelToClient - fuelToStation > 0);
 	}
 	
-	// The last way in which a vehicle could get stuck if it does not have enough fuel to get back to base and it runs out of time while recharging its battery.
-	// Therefore, we have to check if the vehicle could reach the base with its energy level at the target client.
-	// If not, we have to check if it has enough time to recharge and still return to the base without violating the time constraints.
+	// Check if the vehicle could directly return to the base without having to stop for recharging
 	public boolean canReturnToBase() {
-		// This is yet to be implemented!
-		return true;
+		double distanceToBase = this.currentNode.getDistanceToBase();
+		double consumptionToBase = distanceToBase * this.r;
+		return this.energyLevel - consumptionToBase > 0;
 	}
 	
 	public void moveTo(Node node, ArrayList<ArrayList<Double>> distances, double timeAtNode) {

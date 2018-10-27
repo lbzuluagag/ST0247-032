@@ -176,7 +176,11 @@ public class Run {
 			}
 			
 	    	for (Node node : this.nodes) {
-				if (node instanceof Station) { // If the node is a station, check what type of station it is 
+	    		if (node instanceof Depot) {
+	    			((Depot) node).setQ(gmatrix[2][2]);
+	    			((Depot) node).setS(0);
+	    		}
+	    		else if (node instanceof Station) { // If the node is a station, check what type of station it is 
 					//and assign a max charging value and a time for that value. The values are stored in the matrices. 
 										
 					switch(((Station) node).getType()){
@@ -323,70 +327,64 @@ public class Run {
 	public void planRoutes() {
 		// Initialise by adding the first vehicle to the fleet
 		this.addVehicle();
+		int count = 0;
 		
 		// Loop until there are no more unvisited nodes
 		while (this.unvisited > 0) {
-			// Print status for debugging
-			// this.printDynamicStatus(0);
 			
 			// Find closest neighbour
 			Client currentCandidate = findGlobalClosestNeighbour();
-
+			Vehicle v = currentCandidate.getAssignedVehicle();
 			// Initialise a target node
-			Node target;
+			Node target = new Client(-1, "tmp", 0, 0);
+
 			// Check if the vehicle can visit the closest client and still make it to the base in time. If not, move vehicle to base
-			if (!currentCandidate.getAssignedVehicle().canGoToCNInTime(this.St_customer)) {
-				target = this.nodes.get(0);
+			if (!v.canGoToCNInTime(this.St_customer)) {
+				v.returnToBase(this.distances);
 			}
 			// Check if the vehicle can still make it to a station without running out of fuel. If not, move vehicle to station
-			else if (!currentCandidate.getAssignedVehicle().canGoToCNWithFuel()) {
+			else if (!v.canGoToCNWithFuel()) {
 				// Check which station to move to. If the vehicle cannot move to the preferred station with the smallest cumulative distance, simply move to the current closest station
-				Vehicle v = currentCandidate.getAssignedVehicle();
 				int current = v.getCurrentNode().getNumber();
 				int neighbour = currentCandidate.getNumber();
 				double distanceToPrefStation = this.distances.get(current).get(this.closestStations.get(current).get(neighbour).getNumber());
 				
-				// If the energy level does not fall below 0 when going to the preferred station, move there. Else move to the closest station.
+				// If the energy level would not fall below 0 when going to the preferred station, move there. Else move to the closest station.
 				if (v.getEnergyLevel() - distanceToPrefStation * this.r >= 0) {
-					v.moveTo(this.closestStations.get(current).get(neighbour), this.distances, this.Smax); // this.closestStations.get(current).get(neighbour).getS()
-					target = currentCandidate;
+					target = this.closestStations.get(current).get(neighbour);
 				}
 				else {
-					target = currentCandidate.getClosestStation();					
+					target = v.getCurrentNode().getClosestStation();					
 				}
 			}
-			// Check if the vehicle would have enough fuel to go back to base from candidate. If not, move directly to base
-			else if (!currentCandidate.getAssignedVehicle().canReturnToBase()) {
-				target = this.nodes.get(0);
-			}
+			
 			else {
 				target = currentCandidate;
 			}
 			
-			/* System.out.println("Closest global client " + String.valueOf(currentCandidate.getNumber()) + " assigned to vehicle " + String.valueOf(currentCandidate.getAssignedVehicle().getNumber()));
 			
-			// Move vehicle
-			System.out.println("Vehicle " + String.valueOf(currentCandidate.getAssignedVehicle().getNumber()) + " is moved to: ");
-			System.out.print(target.getNumber());
-			System.out.print(", Name: ");
-			System.out.println(target.getName()); */
-			if (target instanceof Depot) {
-				currentCandidate.getAssignedVehicle().moveTo(target, this.distances, 0);
-			}
-			else {
-				currentCandidate.getAssignedVehicle().moveTo(target, this.distances, this.St_customer);
-			}
-			
-			// Decrement unvisited if the vehicle was moved to a client.
-			if (target.equals(currentCandidate)) {
-				this.unvisited --;
+			if (!(target.getNumber() == -1)) {
+				if (target instanceof Depot) {
+					currentCandidate.getAssignedVehicle().moveTo(target, this.distances, 0);
+				}
+				else if (target instanceof Station) {
+					currentCandidate.getAssignedVehicle().moveTo(target, this.distances, ((Station) target).getS());
+				}
+				else {
+					currentCandidate.getAssignedVehicle().moveTo(target, this.distances, this.St_customer);
+				}
+				
+				// Decrement unvisited if the vehicle was moved to a client.
+				if (target.equals(currentCandidate)) {
+					this.unvisited --;
+				}
 			}
 			
 			// Potentially update closest client of other vehicles (if the current candidate was the closest to several different vehicles, it has become the current node of the closer one and it cannot
 			// remain the closest neighbour of the other ones.
-			for (Vehicle v : this.vehicles) {
-				if (v.getClosestClient().isVisited()) {
-					v.findClosestClient(this.distances, this.nodes);
+			for (Vehicle vehicle : this.vehicles) {
+				if (vehicle.getClosestClient().isVisited()) {
+					vehicle.findClosestClient(this.distances, this.nodes);
 				}
 			}
 			
@@ -394,6 +392,13 @@ public class Run {
 			if (!this.vehicleAtBase()) {
 				this.addVehicle();
 			}
+			
+			if (count > 10000) {
+				System.out.println("Couldn't find solution");
+				System.exit(1);
+			}
+			
+			count++;
 		}
 		
 		// Finalize routes
@@ -404,29 +409,14 @@ public class Run {
 	public void wrapUpRoutes() {
 		// Iterate over all vehicles
 		for (Vehicle v : this.vehicles) {
-			// Check if vehicle is already at base. If yes, do nothing
+			// Check if vehicle is already at base. If yes, do nothing. Else move vehicle to base.
 			if (!v.getCurrentNode().equals(this.nodes.get(0))) {
-				if (v.canReturnToBase()) {
-					v.moveTo(this.nodes.get(0), this.distances, 0);
-				}
-				else {
-					// Yet to be implemented!
-				}
+				v.returnToBase(this.distances);
 			}
 		}
 	}
 	
-	public void optimizeRoutes() {
-		// first, do local searches to see if the arrangement of nodes can be optimised.
-		// Then, when the node arrangement is final, minimize charging times
-	}
-	
-	public void drawSolutions() {
-		// fully optional
-	}
-	
 	public void printOutput() {
-		// this.printDynamicStatus(1);
 		for (Vehicle v : this.vehicles) {
 			System.out.println("Vehicle " + String.valueOf(v.getNumber()) + ": ");
 			System.out.print("	Route: ");
@@ -438,38 +428,7 @@ public class Run {
 			System.out.println(String.valueOf(this.Tmax - v.getRemTime()).substring(0, 3));
 		}
 	}
-	
-	public void printStatus() {
-		System.out.println("n = " + String.valueOf(this.n));
-		System.out.println("m = " + String.valueOf(this.m));
-		System.out.println("u = " + String.valueOf(this.u));
-		System.out.println("breaks = " + String.valueOf(this.breaks));
-		System.out.println("r = " + String.valueOf(this.r));
-		System.out.println("speed = " + String.valueOf(this.speed));
-		System.out.println("Tmax = " + String.valueOf(this.Tmax));
-		System.out.println("Smax = " + String.valueOf(this.Smax));
-		System.out.println("st_customer = " + String.valueOf(this.St_customer));
-		System.out.println("Q = " + String.valueOf(this.Q));
-		System.out.println(this.distances);
-		System.out.println("");
-		System.out.println(this.closestStations);
-	}
-	
-	public void printDynamicStatus(int i) {
-		switch (i) {
-		case 0:		System.out.println("Vehicle Number	Current	Closest Client	Closest Station Rem Time	Rem Energy	Energy to closest client");
-					for (Vehicle v : this.vehicles) {
-						System.out.println("Vehicle " + String.valueOf(v.getNumber()) + "	" + String.valueOf(v.getCurrentNode().getNumber() + "	" + String.valueOf(v.getClosestClient().getNumber()) + "		" + String.valueOf(v.getClosestClient().getClosestStation().getNumber()) + "		" + String.valueOf(v.getRemTime()).substring(0, 4) + "		" + String.valueOf(v.getEnergyLevel()).substring(0, 5)) + "		" + String.valueOf(this.distances.get(v.getCurrentNode().getNumber()).get(v.getClosestClient().getNumber()) * this.r).substring(0, 5));
-					}
-					break;
-		case 1:		System.out.println("Vehicle Number	Current	Closest Client	Rem Time	Rem Energy");
-					for (Vehicle v : this.vehicles) {
-						System.out.println("Vehicle " + String.valueOf(v.getNumber()) + "	" + String.valueOf(v.getCurrentNode().getNumber() + "	" + String.valueOf(v.getClosestClient().getNumber())) + "		" + String.valueOf(v.getRemTime()).substring(0, 4) + "		" + String.valueOf(v.getEnergyLevel()).substring(0, 4));
-					}
-					break;
-		}
-	}
-	
+
 	public void setup(String[] args) {
 		this.checkInput(args);														// Check input
 		this.readInput(args[0]);													// Read input
@@ -484,7 +443,7 @@ public class Run {
 		Run prog = new Run();														// Initialise object
 		prog.setup(args);															// run setup sequence
 		prog.planRoutes();															// Run the actual algorithm
-		// prog.printOutput();														// print output
+		prog.printOutput();															// print output
 		
 		VND test = new VND(prog.nodes, prog.distances, prog.vehicles, prog.r, prog.speed, prog.Tmax, prog.St_customer, prog.Q);
 		test.changeRouteRepresentation();

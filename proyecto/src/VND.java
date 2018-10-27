@@ -80,6 +80,7 @@ public class VND {
 	// Checks if a given solution is feasible. This means that at no time the energy of a vehicle drops below 0 or
 	// the duration of any route exceeds the limit
 	public boolean isFeasibleSolution(ArrayList<Node> solution) {
+		int vehicleCount = -1;
 		double routeTime = 0.0;
 		double energy = this.Q;
 		
@@ -100,6 +101,7 @@ public class VND {
 			}
 			else if (toNode instanceof Depot) {
 				routeTime += calculateTimeBetweenTwoNodes(0.0, fromNode, toNode);
+				vehicleCount++;
 			}
 			else {
 				routeTime += calculateTimeBetweenTwoNodes(((Station) toNode).getS(), fromNode, toNode);
@@ -110,9 +112,9 @@ public class VND {
 			if (energy < 0.0 || routeTime > this.Tmax) {
 				System.out.println("Solution infeasible.");
 				System.out.println("From " + String.valueOf(fromNode.getNumber()) + " to " + String.valueOf(toNode.getNumber()) + ": ");
+				System.out.println("	Vehicle: " + String.valueOf(vehicleCount));
 				System.out.println("	Time: " + String.valueOf(routeTime));
 				System.out.println("	Energy: " + String.valueOf(energy));
-				return false;
 			}
 		}
 		

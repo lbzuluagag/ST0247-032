@@ -59,7 +59,7 @@ public class Station extends Node {
 		}
 		
 		this.fastestRouteToBase.remove(this);
-		this.setTimeToBaseWithCharging(time);		
+		this.setTimeToBaseWithCharging(time);
 	}
 	
 	

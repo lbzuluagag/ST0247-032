@@ -9,6 +9,8 @@ abstract class Node {
 	private double distanceToBase;
 	LinkedList<Node> fastestRouteToBase = new LinkedList<Node>();
 	private double timeToBaseWithCharging;
+	protected Station closestStation;
+	protected double distanceToStation;
 	
 	public int getNumber() {
 		return number;
@@ -60,5 +62,27 @@ abstract class Node {
 	public void setTimeToBaseWithCharging(double timeToBaseWithCharging) {
 		this.timeToBaseWithCharging = timeToBaseWithCharging;
 	}
+	public void setClosestStation(ArrayList<ArrayList<Double>> distances, ArrayList<Node> nodes) {
+		this.closestStation = new Station(-1, "tmp", -1.0, -1.0, -1);
+		this.distanceToStation = (double) Integer.MAX_VALUE;
+		ArrayList<Double> currentDistances = distances.get(this.getNumber());
+		
+		for (Node node : nodes) {
+			 if (node instanceof Station && currentDistances.get(node.getNumber()) < this.distanceToStation) {
+				 this.closestStation = (Station) node;
+				 this.distanceToStation= currentDistances.get(node.getNumber());
+			 }
+		}
+	}
+
+	public Station getClosestStation() {
+		return closestStation;
+	}
+	
+	public double getDistanceToStation() {
+		return distanceToStation;
+	}
+
+	
 	
 }
