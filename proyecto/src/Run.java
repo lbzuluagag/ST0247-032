@@ -169,7 +169,6 @@ public class Run {
 				nextLine = sc.nextLine();
 				// Decompose input line			
 				String[] parts = nextLine.split(" ");				
-				//gmatrix = new double [3][parts.length];				
 					for(int j=1; j<parts.length; j++){												
 						gmatrix[cont][j-1] = Double.parseDouble(parts[j]);						
 					}				
@@ -416,19 +415,6 @@ public class Run {
 			}
 		}
 	}
-	
-	public void printOutput() {
-		for (Vehicle v : this.vehicles) {
-			System.out.println("Vehicle " + String.valueOf(v.getNumber()) + ": ");
-			System.out.print("	Route: ");
-			for (Node n : v.getRoute()) {
-				System.out.print(String.valueOf(n.getNumber()) + ", ");
-			}
-			System.out.println("");
-			System.out.print("	Time:  ");
-			System.out.println(String.valueOf(this.Tmax - v.getRemTime()).substring(0, 3));
-		}
-	}
 
 	public void setup(String[] args) {
 		this.checkInput(args);														// Check input
@@ -445,14 +431,11 @@ public class Run {
 		prog.startTime = System.currentTimeMillis();
 		prog.setup(args);															// run setup sequence
 		prog.planRoutes();															// Run the actual algorithm
-		// prog.printOutput();														// print output
 		
 		VND test = new VND(prog.nodes, prog.distances, prog.vehicles, prog.r, prog.speed, prog.Tmax, prog.St_customer, prog.Q, prog.startTime);
 		test.changeRouteRepresentation();
-		System.out.println("Value of initial solution: " + String.valueOf(test.calculateObjectiveFunction(test.getSolution())));
-		test.isFeasibleSolution(test.getSolution());
 		test.optimize();
-		System.out.println("Final value: " + String.valueOf(test.calculateObjectiveFunction(test.getCurrentSolution())));
+		test.printSolution(test.getCurrentSolution());
 	}
 
 }

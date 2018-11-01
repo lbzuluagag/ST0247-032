@@ -95,36 +95,36 @@ public class VND {
 		double routeTime = 0.0;
 		double energy = this.Q;
 		
-		for (int i = 1; i < solution.size(); i++) {
+		for (int i = 1; i < solution.size(); i++) {																								// iterate over all nodes
 			Node fromNode = solution.get(i - 1);
 			Node toNode = solution.get(i);
 			
-			if (fromNode instanceof Depot) {
+			if (fromNode instanceof Depot) {																									// if the vehicle is leaving the depot, set the time to 0 and the energy to full capacity
 				energy = this.Q;
 				routeTime = 0.0;
 			}
-			else if (fromNode instanceof Station) {
+			else if (fromNode instanceof Station) {																								// if the vehicle is leaving a station, set the energy to the station's maximum charge
 				energy = ((Station) fromNode).getQ();
 			}
 			
-			if (toNode instanceof Client) {
-				routeTime += calculateTimeBetweenTwoNodes(this.St_customer, fromNode, toNode);
+			if (toNode instanceof Client) {																										// if the vehicle goes to a client, add travel time plus time at client to time
+				routeTime += calculateTimeBetweenTwoNodes(this.St_customer, fromNode, toNode);					
 			}
-			else if (toNode instanceof Depot) {
+			else if (toNode instanceof Depot) {																									// if the vehicle goes to the depot, simply add the travel time to time
 				routeTime += calculateTimeBetweenTwoNodes(0.0, fromNode, toNode);
 			}
-			else {
+			else {																																// if the vehicle goes to a station, add travel time plus charg time to time
 				routeTime += calculateTimeBetweenTwoNodes(((Station) toNode).getS(), fromNode, toNode);
 			}
 			
-			if ((!toNode.equals(fromNode))) {energy -= this.distances.get(fromNode.getNumber()).get(toNode.getNumber()) * this.r;}
+			if ((!toNode.equals(fromNode))) {energy -= this.distances.get(fromNode.getNumber()).get(toNode.getNumber()) * this.r;}				// if the vehicle moves to a new node, subtract the required energy
 			
-			if (energy < 0.0 || routeTime > this.Tmax) {
+			if (energy < 0.0 || routeTime > this.Tmax) {																						// if the energy drops below 0 at any point or the time exceeds the maximum route time, return false
 				return false;
 			}
 		}
 		
-		return true;
+		return true;																															// return true if no error is encountered
 	}
 	
 	// moves a node from its current position in the solution to the specified index
@@ -134,6 +134,7 @@ public class VND {
 		solution.add(pos, tmp);
 	}
 	
+	// swap the positions of two nodes in the solution
 	public void swap(List<Node> solution, int x, int y) {
 		Node xn = solution.get(x);
 		Node yn = solution.get(y);
@@ -144,7 +145,7 @@ public class VND {
 	
 	// reconnects the tails of two different solutions
 	public void reconnect(List<Node> solution, int x, int y) {
-		// Find the 0s in the current solution and store their positions
+		// Find the 0s in the current solution and store their positions. They are indicating ends and beginnings of routes
 		ArrayList<Integer> zeros = new ArrayList<Integer>();
 		int xEnd = -1;
 		int yEnd = -1;
@@ -163,10 +164,10 @@ public class VND {
 			}
 		}
 		
-		if (!(xEnd == yEnd)) {
+		if (!(xEnd == yEnd)) {												// do nothing if the two specified nodes belong to the same route
 			List<Node> out = new ArrayList<Node>();
 			
-			if (x < y) {
+			if (x < y) {													// how the heads and tails are reconnected depends on wether the index of x is smaller or bigger than the index of y
 				for (int i = 0; i < x + 1; i++) {
 					out.add(solution.get(i));
 				}
@@ -201,8 +202,12 @@ public class VND {
 		}		
 	}
 	
-	
-	
+	// this method actually runs the VND. A prerequisite for running this algorithm is that an initial solution has been supplied (by the constructive method.
+	// It will run as long as the total runtime does not exceed 29 seconds.
+	// The three neighbourhoods that are being evaluated are defined by the three operators move, swap, and reconnect. A switch in neighbourhood is realised if
+	// the improvement to the current solution obtained by applying the best operation of the neighbourhood is lower than 0.1%
+	// The best operation of one neighbourhood is found by looking at all possible operations within the neighbourhood before actually performing a move. That requires
+	// iterating over the entire solution for both x and y.
 	public void optimize () {
 		for (Node n : this.initSolution) {														// Initialize a temporary solution that will be modified
 			this.currentSolution.add(n);
@@ -222,26 +227,22 @@ public class VND {
 			
 			for (int x = 1; x < n - 1; x++) {
 				for (int y = 1; y < n - 1; y++) {
-					this.tempSolution = new ArrayList<Node>();									// this HAS to be improved. Takes waaaay too long
+					this.tempSolution = new ArrayList<Node>();									// initialise a temporary solution based on the current solution
 					this.tempSolution.addAll(this.currentSolution);
 					
-					switch (neighbourhood) {
+					switch (neighbourhood) {													// act according to which neighbourhood is under investigation. Only changes the temporary solution and NOT the current solution
 						case 0:		this.move(this.tempSolution, x, y);
 									break;
 						case 1:		this.swap(this.tempSolution, x, y);
 									break;
-						case 2:		this.reconnect(this.tempSolution, x, y);					// never feasible! Change
+						case 2:		this.reconnect(this.tempSolution, x, y);
 									break;
 					}
 					
-					if (this.isFeasibleSolution(this.tempSolution)) {
-						this.tempCost = this.calculateObjectiveFunction(this.tempSolution);
-						if (neighbourhood == 2) {
-							if (this.tempCost != this.currentCost) {
-								System.out.println("new Solution");
-							}
-						}
-						if (this.tempCost < this.currentCost) {
+					if (this.isFeasibleSolution(this.tempSolution)) {							// Check if the change to the temporary solution is feasible
+						this.tempCost = this.calculateObjectiveFunction(this.tempSolution);		// Calculate the cost of the new temporary solution
+
+						if (this.tempCost < this.currentCost) {									// If the temp cost would improve the solution, update the best move of the current neighbourhood
 							bestMove[0] = x;
 							bestMove[1] = y;
 							this.currentCost = this.getTempCost();
@@ -250,7 +251,7 @@ public class VND {
 				}
 			}
 			
-			switch (neighbourhood) {
+			switch (neighbourhood) {															// after evaluating the entire neighbourhood, actually realize an operation on the current solution
 			case 0:		this.move(this.currentSolution, bestMove[0], bestMove[1]);
 						break;
 			case 1:		this.swap(this.currentSolution, bestMove[0], bestMove[1]);
@@ -260,7 +261,7 @@ public class VND {
 			}
 			
 			
-			if ((initCost - this.currentCost) / initCost < 0.001) {
+			if ((initCost - this.currentCost) / initCost < 0.001) {								// switch criteria for neighbourhood: if the solution is improved by less than 0.1%, switch to the next neighbourhood
 				neighbourhood = (neighbourhood + 1) % 3;
 			}
 		}	
@@ -285,36 +286,30 @@ public class VND {
 	public double getTempCost() {
 		return tempCost;
 	}
-	
-	public void minimizeChargingTimes() {
-		double requiredEnergy = 0.0;
-		for (int i = this.currentSolution.size() - 1; i > 0; i--) {
-			Node toNode = this.currentSolution.get(i);
-			Node fromNode = this.currentSolution.get(i);
-			
-			if (fromNode instanceof Depot) {
-				requiredEnergy = 0.0;
-			}
-			else if (fromNode instanceof Client) {
-				requiredEnergy += this.distances.get(fromNode.getNumber()).get(toNode.getNumber()) * this.r;
-			}
-			else {
-				requiredEnergy += this.distances.get(fromNode.getNumber()).get(toNode.getNumber()) * this.r;
-				Station sNode = (Station) fromNode;
-				sNode.setS(requiredEnergy * (sNode.getS()/sNode.getQ()));
-				sNode.setQ(requiredEnergy);
-				requiredEnergy = 0.0;
-			}
-		}
-	}
 
-	// simply outputs the solution (just node ordering, no times or energy)
+	// prints the argument solution plus total route duration and number of vehicles.
 	public void printSolution(List<Node> solution) {
-		for (Node n: solution) {
-			System.out.print(String.valueOf(n.getNumber()) + " ");
+		StringBuilder out = new StringBuilder();
+		int numVehicles = 0;
+		out.append("[[{0, 0.0}, ");
+		for (int i = 1; i< solution.size(); i++) {
+			Node n = solution.get(i);
+			if (n instanceof Depot) {
+				out.append("{0, 0.0}], [{0, 0.0}, ");
+				numVehicles++;
+			} else if (n instanceof Client) {
+				out.append("{" + String.valueOf(n.getNumber()) + ", " + String.valueOf(this.St_customer) + "}, ");
+			} else if (n instanceof Station) {
+				out.append("{" + String.valueOf(n.getNumber()) + ", " + String.valueOf(((Station) n).getS()) + "}, ");
+			}
 		}
 		
-		System.out.println("");
+		out.setLength(out.length() - 13);
+		out.append("]");
+		System.out.println(out);
+		System.out.println("----------------------------------------------------");
+		System.out.println("Final value of objective function [h]: " + String.valueOf(this.calculateObjectiveFunction(this.getCurrentSolution())));
+		System.out.println("Final number of vehicles:              " + String.valueOf(numVehicles));
 	}
 	
 	

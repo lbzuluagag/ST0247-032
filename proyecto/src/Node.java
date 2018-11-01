@@ -54,6 +54,9 @@ abstract class Node {
 		this.distanceToBase = distances.get(this.number).get(0);
 	}
 	
+	// Plans the fasted return to base from this node. Iterates over the set of nodes and always adds the station closest to the base that can be reached
+	// with the current energy level. Once the depot itself has been added to the shortest return route, the function finishes by updating the worst case time
+	// it takes to return to the depot from this node.
 	public void planFastestRouteToBase(ArrayList<ArrayList<Double>> distances, ArrayList<Station> sortedStations, double r, double speed) {
 	}
 	public double getTimeToBaseWithCharging() {
