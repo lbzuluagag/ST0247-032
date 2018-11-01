@@ -41,6 +41,7 @@ public class Run {
 	double Smax;																			// maximum charging time
 	double St_customer;																		// customer visit time
 	double Q;																				// battery capacity
+	double startTime;
 	
 	// Checks input. Input must
 	//		- consist of one argument that describes a file location
@@ -441,14 +442,17 @@ public class Run {
 	
 	public static void main(String[] args) {
 		Run prog = new Run();														// Initialise object
+		prog.startTime = System.currentTimeMillis();
 		prog.setup(args);															// run setup sequence
 		prog.planRoutes();															// Run the actual algorithm
-		prog.printOutput();															// print output
+		// prog.printOutput();														// print output
 		
-		VND test = new VND(prog.nodes, prog.distances, prog.vehicles, prog.r, prog.speed, prog.Tmax, prog.St_customer, prog.Q);
+		VND test = new VND(prog.nodes, prog.distances, prog.vehicles, prog.r, prog.speed, prog.Tmax, prog.St_customer, prog.Q, prog.startTime);
 		test.changeRouteRepresentation();
-		System.out.println("Value of objective function: " + String.valueOf(test.calculateObjectiveFunction()));
+		System.out.println("Value of initial solution: " + String.valueOf(test.calculateObjectiveFunction(test.getSolution())));
 		test.isFeasibleSolution(test.getSolution());
+		test.optimize();
+		System.out.println("Final value: " + String.valueOf(test.calculateObjectiveFunction(test.getCurrentSolution())));
 	}
 
 }
